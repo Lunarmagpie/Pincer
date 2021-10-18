@@ -4,30 +4,6 @@ pincer.middleware package
 Submodules
 ----------
 
-pincer.middleware.activity\_join module
----------------------------------------
-
-.. automodule:: pincer.middleware.activity_join
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pincer.middleware.activity\_join\_request module
-------------------------------------------------
-
-.. automodule:: pincer.middleware.activity_join_request
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pincer.middleware.activity\_spectate module
--------------------------------------------
-
-.. automodule:: pincer.middleware.activity_spectate
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pincer.middleware.channel\_create module
 ----------------------------------------
 
