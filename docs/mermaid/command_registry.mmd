@@ -1,0 +1,5 @@
+flowchart TD
+
+A[Command Decorator] --> B[Register in ChatCommandHandler]
+B --> A
+B -->|When all commands are registered| C[Initialize Commands]
