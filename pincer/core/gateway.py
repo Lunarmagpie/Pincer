@@ -86,7 +86,9 @@ class Gateway:
         intents: Intents,
         url: str,
         shard: int,
-        num_shards: int
+        num_shards: int,
+        browser: str = __package__,
+        device: str = __package__
     ) -> None:
         if len(token) != 59:
             raise InvalidTokenError(
@@ -99,6 +101,8 @@ class Gateway:
         self.shard = shard
         self.num_shards = num_shards
         self.shard_key = [shard, num_shards]
+        self.browser = browser
+        self.device = device
 
         self.__dispatch_handlers: Dict[int, Handler] = {
             1: self.handle_heartbeat_req,
@@ -352,8 +356,8 @@ class Gateway:
                     "intents": self.intents,
                     "properties": {
                         "$os": system(),
-                        "$browser": __package__,
-                        "$device": __package__
+                        "$browser": self.browser,
+                        "$device": self.device
                     },
                     "compress": GatewayConfig.compressed(),
                     "shard": self.shard_key

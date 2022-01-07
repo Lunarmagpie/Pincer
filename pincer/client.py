@@ -194,6 +194,8 @@ class Client:
         intents: Intents = None,
         throttler: ThrottleInterface = DefaultThrottleHandler,
         reconnect: bool = True,
+        browser: Optional[str] = __package__,
+        device: Optional[str] = __package__
     ):
 
         if isinstance(intents, Iterable):
@@ -205,6 +207,8 @@ class Client:
         self.intents = intents
         self.reconnect = reconnect
         self.token = token
+        self.device = device
+        self.browser = browser
 
         self.bot: Optional[User] = None
         self.received_message = received or "Command arrived successfully!"
@@ -539,7 +543,9 @@ class Client:
             intents=self.intents,
             url=self.gateway.url,
             shard=shard,
-            num_shards=num_shards
+            num_shards=num_shards,
+            device=self.device,
+            browser=self.browser
         )
         await gateway.init_session()
 
