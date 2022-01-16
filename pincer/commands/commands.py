@@ -8,7 +8,7 @@ import re
 from asyncio import iscoroutinefunction
 from functools import partial
 from inspect import Signature, isasyncgenfunction, _empty
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, List
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, TypeVar, Union, List
 
 from pincer.commands.interactable import PartialInteractable
 
@@ -542,6 +542,7 @@ def message_command(
 def register_command(
     manager: Any,
     func: Callable[..., Any] = None,
+    extensions: List[Callable[..., Awaitable[bool]]] = None,
     app_command_type: Optional[AppCommandType] = None,
     name: Optional[str] = None,
     description: Optional[str] = MISSING,
@@ -553,6 +554,9 @@ def register_command(
     command_options=MISSING,  # Missing typehint?
     parent: Optional[Union[Group, Subgroup]] = MISSING
 ):
+    if extensions is None:
+        extensions = []
+
     cmd = name or func.__name__
 
     if not re.match(REGULAR_COMMAND_NAME_REGEX, cmd):
@@ -619,6 +623,7 @@ def register_command(
         manager=manager,
         group=group,
         sub_group=sub_group,
+        extensions=extensions,
         app=AppCommand(
             name=cmd,
             description=description,
@@ -632,5 +637,11 @@ def register_command(
 
 class _PartialCommand(PartialInteractable):
     def register(self, manager: Any) -> Callable[..., Any]:
-        register_command(manager, *self.args, func=self.func, **self.kwargs)
+        register_command(
+            manager,
+            *self.args,
+            func=self.func,
+            extensions=self._extensions,
+            **self.kwargs
+        )
         return self.func

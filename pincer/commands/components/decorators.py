@@ -97,7 +97,8 @@ class _PartialButton(PartialInteractable):
 
         ComponentHandler.register[self.kwargs.get("custom_id")] = InteractableStructure(
             call=self.func,
-            manager=manager
+            extensions=self._extensions,
+            manager=manager,
         )
 
         return button
@@ -173,6 +174,7 @@ class _PartialSelectMenu(PartialInteractable):
     def register(self, manager: Any) -> SelectMenu:
         ComponentHandler.register[self.kwargs.get("custom_id")] = InteractableStructure(
             call=self.func,
+            extensions=self._extensions,
             manager=manager
         )
 

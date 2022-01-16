@@ -31,6 +31,8 @@ class PartialInteractable(ABC):
         self.args = args
         self.kwargs = kwargs
 
+        self._extensions = []
+
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         return self.func.__call__(*args, **kwds)
 
@@ -45,6 +47,7 @@ class Interactable:
     objects. Any class that subclasses this class can register Application Commands and
     Message Components.
     """
+
     def __init__(self):
         for key, value in self.__class__.__dict__.items():
             if isinstance(value, PartialInteractable):

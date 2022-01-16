@@ -17,6 +17,7 @@ from .components import (
     ActionRow, Button, ButtonStyle, ComponentHandler, SelectMenu, SelectOption,
     component, button, select_menu, LinkButton
 )
+from .extension import command_extension
 from .groups import Group, Subgroup
 from .interactable import PartialInteractable, Interactable
 
@@ -26,5 +27,5 @@ __all__ = (
     "ComponentHandler", "Description", "Group", "Interactable", "LinkButton",
     "MaxValue", "MinValue", "Modifier", "PartialInteractable", "SelectMenu",
     "SelectOption", "Subgroup", "button", "command", "component",
-    "message_command", "select_menu", "user_command"
+    "message_command", "select_menu", "user_command", "command_extension"
 )

@@ -9,6 +9,8 @@ from contextlib import suppress
 from inspect import isasyncgenfunction, _empty
 from typing import TYPE_CHECKING, Optional
 
+from pincer.objects.app.command import InteractableStructure
+
 from ..commands import ChatCommandHandler, ComponentHandler
 from ..commands.chat_command_handler import _hash_app_command_params
 from ..exceptions import InteractionDoesNotExist
@@ -88,17 +90,15 @@ def get_command_from_registry(interaction: Interaction):
     )
 
 
-def get_call(self: Client, interaction: Interaction) -> Optional[Tuple[Coro, Any]]:
+def get_command(interaction: Interaction) -> Optional[Tuple[Coro, Any]]:
     if interaction.type == InteractionType.APPLICATION_COMMAND:
         command = get_command_from_registry(interaction)
         if command is None:
             return None
-        # Only application commands can be throttled
-        self.throttler.handle(command)
-        return command.call, command.manager
+        return command
     elif interaction.type == InteractionType.MESSAGE_COMPONENT:
         command = ComponentHandler.register.get(interaction.data.custom_id)
-        return (command.call, command.manager)
+        return command
     elif interaction.type == InteractionType.AUTOCOMPLETE:
         raise NotImplementedError(
             "Handling for autocomplete is not implemented"
@@ -156,8 +156,7 @@ async def interaction_handler(
     self: Client,
     interaction: Interaction,
     context: MessageContext,
-    command: Coro,
-    manager: Any
+    command: InteractableStructure,
 ):
     """|coro|
 
@@ -169,10 +168,10 @@ async def interaction_handler(
         The interaction which is linked to the command.
     context : :class:`~pincer.objects.message.context.MessageContext`
         The context of the command.
-    command : :class:`~pincer.utils.types.Coro`
+    command : :class:`~pincer.objects.app.InteractableStructure`
         The coroutine which will be seen as a command.
     """
-    sig, _ = get_signature_and_params(command)
+    sig, _ = get_signature_and_params(command.call)
 
     defaults = {
         key: value.default
@@ -217,15 +216,19 @@ async def interaction_handler(
 
     kwargs = {**defaults, **params}
 
+    for extension in command.extensions:
+        if await extension(self, context) is False:
+            return
+
     try:
         await interaction_response_handler(
-            command, manager, context, interaction, args, kwargs
+            command.call, command.manager, context, interaction, args, kwargs
         )
     except Exception as e:
         if coro := get_index(self.get_event_coro("on_command_error"), 0):
             await interaction_response_handler(
                 coro.func,
-                manager,
+                command.manager,
                 context,
                 interaction,
                 [e, args, kwargs],
@@ -258,10 +261,10 @@ async def interaction_create_middleware(
         ``on_interaction_create`` and an ``Interaction``
     """
     interaction: Interaction = Interaction.from_dict(payload.data)
-    call, manager = get_call(self, interaction)
+    command = get_command(interaction)
     context = interaction.get_message_context()
 
-    await interaction_handler(self, interaction, context, call, manager)
+    await interaction_handler(self, interaction, context, command)
 
     return "on_interaction_create", interaction
 
