@@ -26,6 +26,6 @@ __all__ = (
     "ChatCommandHandler", "Choice", "Choices", "CommandArg",
     "ComponentHandler", "Description", "Group", "Interactable", "LinkButton",
     "MaxValue", "MinValue", "Modifier", "PartialInteractable", "SelectMenu",
-    "SelectOption", "Subgroup", "button", "command", "component",
-    "message_command", "select_menu", "user_command", "command_extension"
+    "SelectOption", "Subgroup", "button", "command", "command_extension",
+    "component", "message_command", "select_menu", "user_command"
 )
