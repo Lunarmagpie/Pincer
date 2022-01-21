@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import logging
 from asyncio import gather
+from weakref import WeakValueDictionary
 
 from ..utils.types import MISSING, Singleton
 
@@ -61,7 +62,10 @@ class ChatCommandHandler(metaclass=Singleton):
 
     has_been_initialized = False
     managers: List[Interactable] = []
-    register: Dict[str, InteractableStructure[AppCommand]] = {}
+    register: WeakValueDictionary[
+        str,
+        InteractableStructure[AppCommand]
+    ] = WeakValueDictionary()
     built_register: Dict[str, AppCommand] = {}
 
     # Endpoints:
