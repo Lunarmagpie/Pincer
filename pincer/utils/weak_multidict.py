@@ -1,3 +1,6 @@
+# Copyright Pincer 2021-Present
+# Full MIT License can be found in `LICENSE` at the project root.
+
 from collections import defaultdict
 from typing import DefaultDict, Generic, Optional, TypeVar, overload, Set
 from weakref import WeakSet, finalize
