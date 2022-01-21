@@ -2,6 +2,7 @@
 # Full MIT License can be found in `LICENSE` at the project root.
 
 from __future__ import annotations
+from collections import defaultdict
 
 import logging
 import signal
@@ -11,11 +12,11 @@ from asyncio import (
     create_task,
     get_event_loop,
 )
-from collections import defaultdict
 from functools import partial
 from inspect import isasyncgenfunction
 from typing import (
     Any,
+    DefaultDict,
     Dict,
     List,
     Optional,
@@ -60,6 +61,7 @@ from .utils.insertion import should_pass_cls, should_pass_gateway
 from .utils.shards import calculate_shard_id
 from .utils.types import CheckFunction
 from .utils.types import Coro
+from .utils.weak_multidict import WeakMultidict
 
 if TYPE_CHECKING:
     from .utils.snowflake import Snowflake
@@ -74,7 +76,8 @@ _log = logging.getLogger(__package__)
 MiddlewareType = Optional[Union[Coro, Tuple[str, List[Any], Dict[str, Any]]]]
 
 _event = Union[str, InteractableStructure[None]]
-_events: Dict[str, Optional[Union[List[_event], _event]]] = defaultdict(list)
+_events: WeakMultidict[_event] = WeakMultidict()
+_middleware: DefaultDict[str, _event] = defaultdict(list)
 
 
 def event_middleware(call: str, *, override: bool = False):
@@ -137,7 +140,7 @@ def event_middleware(call: str, *, override: bool = False):
                 call,
             )
 
-        if not override and callable(_events.get(call)):
+        if not override and callable(_middleware.get(call)):
             raise RuntimeError(
                 f"Middleware event with call `{call}` has "
                 "already been registered"
@@ -148,7 +151,7 @@ def event_middleware(call: str, *, override: bool = False):
 
             return await func(cls, gateway, payload)
 
-        _events[call] = wrapper
+        _middleware[call] = wrapper
         return wrapper
 
     return decorator
@@ -340,7 +343,8 @@ class Client(Interactable, CogManager):
             call=coroutine
         )
 
-        _events[name].append(event)
+        _events[name] = event
+        print(_events)
         return event
 
     @staticmethod
@@ -356,17 +360,7 @@ class Client(Interactable, CogManager):
         -------
         List[Optional[:class:`~pincer.objects.app.command.InteractableStructure`[None]]]
         """
-        calls = _events.get(name.strip().lower())
-
-        return (
-            []
-            if not calls
-            else [
-                call
-                for call in calls
-                if isinstance(call, InteractableStructure)
-            ]
-        )
+        return _events.get(name.strip().lower())
 
     @staticmethod
     def execute_event(
@@ -533,7 +527,7 @@ class Client(Interactable, CogManager):
         event name which starts with ``on_``.
 
         Returns a tuple where the first element is the final executor
-        (so the event) its index in ``_events``.
+        (so the event) its index in ``_middleware``.
 
         The second and third element are the ``*args``
         and ``**kwargs`` for the event.
@@ -543,7 +537,7 @@ class Client(Interactable, CogManager):
         payload : :class:`~pincer.core.dispatch.GatewayDispatch`
             The original payload for the event
         key : :class:`str`
-            The index of the middleware in ``_events``
+            The index of the middleware in ``_middleware``
 
         Raises
         ------
@@ -552,7 +546,7 @@ class Client(Interactable, CogManager):
         RuntimeError
             Middleware has not been registered
         """
-        ware: MiddlewareType = _events.get(key)
+        ware: MiddlewareType = _middleware.get(key)
         next_call, arguments, params = ware, [], {}
 
         if iscoroutinefunction(ware):
