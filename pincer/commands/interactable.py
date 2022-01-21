@@ -27,27 +27,3 @@ class Interactable:
         for value in vars(type(self)).values():
             if isinstance(value, InteractableStructure):
                 value.manager = self
-
-    def __del__(self):
-        self.unassign()
-
-    def unassign(self):
-        """
-        Removes this objects loaded commands from ChatCommandHandler and
-        ComponentHandler and removes loaded events from the client.
-        """
-        for value in vars(type(self)).values():
-            if isinstance(value, InteractableStructure):
-                if isinstance(value.metadata, AppCommand):
-                    for key, _value in INTERACTION_REGISTERS.items():
-                        if value is _value:
-                            INTERACTION_REGISTERS.pop(key)
-
-                key = value.call.__name__.lower()
-
-                event_or_list = _client._events.get(key)
-                if isinstance(event_or_list, list):
-                    if value in event_or_list:
-                        event_or_list.remove(value)
-                else:
-                    _client._events.pop(key, None)

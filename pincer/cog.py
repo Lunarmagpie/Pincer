@@ -98,8 +98,6 @@ class CogManager:
         modules = []
 
         for cog in self.cogs:
-            cog.unassign()
-
             mod = import_module(type(cog).__module__)
             if mod not in modules:
                 modules.append(mod)
